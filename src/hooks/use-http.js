@@ -3,11 +3,12 @@ import { useState, useCallback } from "react";
 const useHTTP = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [tasks, setTasks] = useState([]);
 
-  const fetchTasks = useCallback(async (method, taskText) => {
-    console.log(`start Fetching with ${method} method`);
-    setIsLoading(true);
+  const sendRequest = useCallback(async (method, payLoad, payLoadFn) => {
+    console.log(`now using '${method}' method`);
+    if (method === "GET" || method === "POST") {
+      setIsLoading(true);
+    }
     setError(null);
     let response;
     try {
@@ -20,10 +21,15 @@ const useHTTP = () => {
         case "POST":
           response = await fetch(`${process.env.REACT_APP_API_KEY}/tasks.json`, {
             method: "POST",
-            body: JSON.stringify({ text: taskText }),
+            body: JSON.stringify({ text: payLoad }),
             headers: {
               "Content-Type": "application/json",
             },
+          });
+          break;
+        case "DELETE":
+          response = await fetch(`${process.env.REACT_APP_API_KEY}/tasks/${payLoad}.json`, {
+            method: "DELETE",
           });
           break;
         default:
@@ -35,18 +41,16 @@ const useHTTP = () => {
       }
 
       const data = await response.json();
-      const loadedTasks = [];
-      for (const taskKey in data) {
-        loadedTasks.push({ id: taskKey, text: data[taskKey].text });
-      }
 
-      setTasks(loadedTasks);
+      if (method === "GET" || method === "POST") {
+        payLoadFn(data);
+      }
     } catch (err) {
       setError(err.message || "Something went wrong!");
     }
     setIsLoading(false);
   }, []);
-  return [isLoading, error, fetchTasks, tasks, setTasks];
+  return { isLoading, error, sendRequest };
 };
 
 export default useHTTP;

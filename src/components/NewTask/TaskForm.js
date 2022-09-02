@@ -3,15 +3,16 @@ import { useRef } from "react";
 import classes from "./TaskForm.module.css";
 
 const TaskForm = (props) => {
-  const taskInputRef = useRef();
+  const taskInputRef = useRef("");
 
   const submitHandler = (event) => {
     event.preventDefault();
 
-    const enteredValue = taskInputRef.current.value;
+    let enteredValue = taskInputRef.current.value;
 
     if (enteredValue.trim().length > 0) {
-      props.onEnterTask("POST", enteredValue);
+      props.onEnterTask(enteredValue);
+      taskInputRef.current.value = "";
     }
   };
 
